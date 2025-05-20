@@ -56,6 +56,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     private Bitmap rawHeart, heartBitmap;
     private SoundPool soundPool;
     private int soundBounce;
+    private int soundLoseHeart;
     private MediaPlayer musicPlayer;
     private SensorManager sensorManager;
     private float accelX;
@@ -99,6 +100,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
                 .setMaxStreams(3)
                 .build();
         soundBounce = soundPool.load(context, R.raw.bounce, 1);
+
+        soundLoseHeart = soundPool.load(context, R.raw.loseheart, 1);
 
         // Setup background music
         musicPlayer = MediaPlayer.create(context, R.raw.background_music);
@@ -280,8 +283,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
 
         // 9) Perda de vida
         if (ball.getY() > getHeight()) {
-            soundPool.play(soundBounce, 1, 1, 0, 0, 1);  // som de life lost
-            lives--;
+            soundPool.play(soundLoseHeart, 1, 1, 0, 0, 1);            lives--;
             if (lives <= 0) {
                 isGameOver = true;
 
