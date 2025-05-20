@@ -72,6 +72,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     private int screenH;
     private int score = 0;
     private Paint scorePaint;
+    // player para a música de Game Over
+    private MediaPlayer gameOverPlayer;
+    private boolean  gameOverMusicPlayed = false;
 
     public GameView(Context context) {
         super(context);
@@ -100,6 +103,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         // Setup background music
         musicPlayer = MediaPlayer.create(context, R.raw.background_music);
         musicPlayer.setLooping(true);
+
+        gameOverPlayer = MediaPlayer.create(context, R.raw.gameovermusic);
+        gameOverPlayer.setLooping(false);
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         gameStarted  = false;
@@ -196,7 +202,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         while (running) {
             if (!getHolder().getSurface().isValid()) continue;
             Canvas canvas = getHolder().lockCanvas();
-            if (!paused) {
+            if (!paused || !gameStarted) {
                 update();
             }
             drawGame(canvas);
@@ -278,6 +284,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
             lives--;
             if (lives <= 0) {
                 isGameOver = true;
+
+                // para música de fundo e toca game over (só uma vez)
+                if (!gameOverMusicPlayed) {
+                    musicPlayer.pause();
+                    musicPlayer.seekTo(0);
+                    gameOverPlayer.start();
+                    gameOverMusicPlayed = true;
+                }
             } else {
                 paddle.reset(getWidth());
                 ball.reset();
@@ -352,6 +366,18 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
             score = 0;  // zera ao reiniciar após Game Over
             currentLevel = 0;
             loadLevel(0);
+
+            // reseta música de game over pra poder tocar numa próxima vez
+            if (gameOverMusicPlayed) {
+                gameOverPlayer.seekTo(0);
+                gameOverMusicPlayed = false;
+            }
+
+            // retoma a música de fundo
+            if (!musicPlayer.isPlaying()) {
+                musicPlayer.start();
+            }
+
             return true;
         }
 
