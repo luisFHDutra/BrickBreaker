@@ -23,6 +23,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     private static final int HEART_SIZE = 50;
     private static final int HEART_MARGIN_X = 35;
     private static final int HEART_MARGIN_Y = 20;
+    private static final int SCORE_SIZE = 50;
+    private static final int SCORE_MARGIN = 20;
     private static final float GAMEOVER_SCALE_W = 0.75f;
     private static final float GAMEOVER_SCALE_H = 0.25f;
     private static final int PAUSE_BUTTON_SIZE = 60;   // menor
@@ -68,6 +70,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     private static final int BUTTON_SIZE = 80;   // em pixels
     private int screenW;
     private int screenH;
+    private int score = 0;
+    private Paint scorePaint;
 
     public GameView(Context context) {
         super(context);
@@ -108,6 +112,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         pauseBitmap     = Bitmap.createScaledBitmap(rawPause, PAUSE_BUTTON_SIZE, PAUSE_BUTTON_SIZE, false);
         Bitmap rawPlay  = BitmapFactory.decodeResource(getResources(), R.drawable.playbutton);
         playBitmap      = Bitmap.createScaledBitmap(rawPlay,  PLAY_BUTTON_SIZE, PLAY_BUTTON_SIZE, false);
+
+        // inicializa Paint para desenhar o score
+        scorePaint = new Paint();
+        scorePaint.setColor(Color.WHITE);
+        scorePaint.setTextSize(60);
+        scorePaint.setTextAlign(Paint.Align.CENTER);
+        scorePaint.setFakeBoldText(true);
     }
 
     @Override
@@ -244,6 +255,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
                         if (b.handleHit()) {
                             ball.bounceBrick();
                             soundPool.play(soundBounce, 1, 1, 0, 0, 1);
+                            // só incrementa quando o brick some de fato
+                            if (!b.isVisible()) {
+                                score += 50;
+                            }
                         }
                         break;
                     }
@@ -272,12 +287,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     }
 
     private void drawGame(Canvas canvas) {
-        // 1) Desenha o fundo rolante
+        // Desenha o fundo rolante
         int x2 = -offsetBg;
         canvas.drawBitmap(background, x2, 0, null);
         canvas.drawBitmap(background, x2 + background.getWidth(), 0, null);
 
-        // 2) Desenha tijolos
+        // Desenha tijolos
         if (bricks != null) {
             for (Brick[] row : bricks) {
                 for (Brick b : row) {
@@ -288,31 +303,38 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
             }
         }
 
-        // 3) Desenha paddle e bola
+        // Desenha paddle e bola
         paddle.draw(canvas);
         ball.draw(canvas);
 
-        // 4) Desenha vidas (corações)
+        // Desenha vidas (corações)
         for (int i = 0; i < lives; i++) {
             float x = HEART_MARGIN_X + i * (HEART_SIZE + HEART_MARGIN_X);
             canvas.drawBitmap(heartBitmap, x, HEART_MARGIN_Y, null);
         }
 
-        // 5) Se Game Over, desenha a mensagem
+        // Desenha o score
+        String padded = String.format("%06d", score);
+        canvas.drawText(padded,
+                screenW / 2f,
+                SCORE_MARGIN + SCORE_SIZE,
+                scorePaint);
+
+        // Se Game Over, desenha a mensagem
         if (isGameOver) {
             float gx = (screenW - gameOverBitmap.getWidth()) / 2f;
-            float gy = (screenH - gameOverBitmap.getHeight()) / 2f;
+            float gy = (screenH - gameOverBitmap.getHeight()) /2f;
             canvas.drawBitmap(gameOverBitmap, gx, gy, null);
         }
 
-        // 6) Se pausado: overlay + play
+        // Se pausado: overlay + play
         if (paused) {
             Paint fade = new Paint();
             fade.setColor(Color.argb(150, 0, 0, 0));
             canvas.drawRect(0, 0, screenW, screenH, fade);
             canvas.drawBitmap(playBitmap, playRect.left, playRect.top, null);
         }
-        // 7) Senão (jogo rodando): botão de pause
+        // Senão (jogo rodando): botão de pause
         else {
             canvas.drawBitmap(pauseBitmap, pauseRect.left, pauseRect.top, null);
         }
@@ -327,6 +349,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
 
         // 1) Game Over: sempre tem prioridade
         if (isGameOver) {
+            score = 0;  // zera ao reiniciar após Game Over
             currentLevel = 0;
             loadLevel(0);
             return true;
