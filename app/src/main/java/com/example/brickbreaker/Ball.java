@@ -46,19 +46,19 @@ public class Ball {
     }
 
     public void bouncePaddle(RectF paddleRect) {
-        // inverte sempre o vy
-        vy = -Math.abs(vy);
+        // calcula o módulo atual da velocidade
+        float speed = (float)Math.hypot(vx, vy);
 
-        // centro do paddle e da bola
-        float paddleCenter = paddleRect.left + paddleRect.width() / 2f;
-        float ballCenter   = x + SIZE / 2f;
-
-        // quanta diferença entre centros (-1.0 à esquerda ... +1.0 à direita)
+        // inverte vertical (sempre pra cima)
+        // calcula norm (-1..+1)
+        float paddleCenter = paddleRect.left + paddleRect.width()/2f;
+        float ballCenter   = x + SIZE/2f;
         float norm = (ballCenter - paddleCenter) / (paddleRect.width()/2f);
+        norm = Math.max(-1f, Math.min(1f, norm));  // garante faixa
 
-        // define vx proporcional a essa diferença
-        float speed = 6; // magnitude base
+        // distribui speed em vx e vy via seno/cosseno
         vx = speed * norm;
+        vy = -Math.abs(speed * (float)Math.sqrt(1 - norm*norm));
     }
 
     public void bounceBrick(){
