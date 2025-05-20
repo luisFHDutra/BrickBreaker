@@ -66,7 +66,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     // largura da tela, inicializada em surfaceChanged()
     private Bitmap pauseBitmap, playBitmap;
     private RectF pauseRect, playRect;
-    private boolean paused = false;
+    private boolean paused = true;
     private static final int BUTTON_SIZE = 80;   // em pixels
     private int screenW;
     private int screenH;
